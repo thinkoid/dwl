@@ -2,9 +2,9 @@
 static const int sloppyfocus        = 1;  /* focus follows mouse */
 static const unsigned int borderpx  = 1;  /* border pixel of windows */
 static const int lockfullscreen     = 1;  /* 1 will force focus on the fullscreen window */
-static const float rootcolor[]      = {0.3, 0.3, 0.3, 1.0};
+static const float rootcolor[]      = {0.1, 0.1, 0.1, 1.0};
 static const float bordercolor[]    = {0.5, 0.5, 0.5, 1.0};
-static const float focuscolor[]     = {1.0, 0.0, 0.0, 1.0};
+static const float focuscolor[]     = {.8, .8, .8, 1.0};
 /* To conform the xdg-protocol, set the alpha to zero to restore the old behavior */
 static const float fullscreen_bg[]  = {0.1, 0.1, 0.1, 1.0};
 
@@ -16,7 +16,7 @@ static const Rule rules[] = {
 	/* examples:
 	{ "Gimp",     NULL,       0,            1,           -1 },
 	*/
-	{ "firefox",  NULL,       1 << 8,       0,           -1 },
+	{ "example",  NULL,       1 << 8,       0,           -1 },
 };
 
 /* layout(s) */
@@ -34,7 +34,7 @@ static const MonitorRule monrules[] = {
 	{ "eDP-1",    0.5,  1,      2,    &layouts[0], WL_OUTPUT_TRANSFORM_NORMAL },
 	*/
 	/* defaults */
-	{ NULL,       0.55, 1,      1,    &layouts[0], WL_OUTPUT_TRANSFORM_NORMAL },
+	{ NULL,       0.5, 1,      1,    &layouts[0], WL_OUTPUT_TRANSFORM_NORMAL },
 };
 
 /* keyboard */
@@ -53,7 +53,7 @@ static const int repeat_delay = 200;
 static const int tap_to_click = 1;
 static const int tap_and_drag = 1;
 static const int drag_lock = 1;
-static const int natural_scrolling = 0;
+static const int natural_scrolling = 1;
 static const int disable_while_typing = 1;
 static const int left_handed = 0;
 static const int middle_button_emulation = 0;
@@ -99,7 +99,7 @@ static const double accel_speed = 0.0;
 
 /* commands */
 static const char *termcmd[] = { "foot", NULL };
-static const char *menucmd[] = { "bemenu-run", NULL };
+static const char *menucmd[] = { "bemenu-run", "--fn", "JetBrains Mono Thin 18", "-n", NULL };
 
 static const Key keys[] = {
 	/* Note that Shift changes certain key codes: c -> C, 2 -> at, etc. */
