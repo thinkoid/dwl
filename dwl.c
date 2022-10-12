@@ -1,6 +1,7 @@
 /*
  * See LICENSE file for copyright and license details.
  */
+#include <assert.h>
 #include <getopt.h>
 #include <libinput.h>
 #include <limits.h>
@@ -291,6 +292,7 @@ static void updatetitle(struct wl_listener *listener, void *data);
 static void urgent(struct wl_listener *listener, void *data);
 static void view(const Arg *arg);
 static void virtualkeyboard(struct wl_listener *listener, void *data);
+static void volume(const Arg *arg);
 static Monitor *xytomon(double x, double y);
 static struct wlr_scene_node *xytonode(double x, double y, struct wlr_surface **psurface,
 		Client **pc, LayerSurface **pl, double *nx, double *ny);
@@ -298,7 +300,7 @@ static void zoom(const Arg *arg);
 
 /* variables */
 static const char broken[] = "broken";
-static const char *cursor_image = "left_ptr";
+static const char *cursor_image = "top_left_arrow";
 static pid_t child_pid = -1;
 static void *exclusive_focus;
 static struct wl_display *dpy;
@@ -1556,8 +1558,8 @@ motionnotify(uint32_t time)
 	/* If there's no client surface under the cursor, set the cursor image to a
 	 * default. This is what makes the cursor image appear when you move it
 	 * off of a client or over its border. */
-	if (!surface && !seat->drag && (!cursor_image || strcmp(cursor_image, "left_ptr")))
-		wlr_xcursor_manager_set_cursor_image(cursor_mgr, (cursor_image = "left_ptr"), cursor);
+	if (!surface && !seat->drag && (!cursor_image || strcmp(cursor_image, "top_left_arrow")))
+		wlr_xcursor_manager_set_cursor_image(cursor_mgr, (cursor_image = "top_left_arrow"), cursor);
 
 	pointerfocus(c, surface, sx, sy, time);
 }
@@ -2494,6 +2496,25 @@ virtualkeyboard(struct wl_listener *listener, void *data)
 	createkeyboard(&keyboard->input_device);
 }
 
+void
+volume(const Arg *arg)
+{
+        Client *sel;
+
+        const char *argv[] = { "volume", 0, 0 };
+        static const char *arr[] = { "DOWN", "MUTE", "UP" };
+
+        const size_t i = arg->i + 1;
+        assert(i < sizeof arr / sizeof *arr);
+
+        if (0 == (sel = selclient()))
+                return;
+
+        argv[1] = arr[i];
+        spawn(&(Arg){ .v = argv });
+}
+
+
 Monitor *
 xytomon(double x, double y)
 {
@@ -2660,7 +2681,7 @@ xwaylandready(struct wl_listener *listener, void *data)
 	wlr_xwayland_set_seat(xwayland, seat);
 
 	/* Set the default XWayland cursor to match the rest of dwl. */
-	if ((xcursor = wlr_xcursor_manager_get_xcursor(cursor_mgr, "left_ptr", 1)))
+	if ((xcursor = wlr_xcursor_manager_get_xcursor(cursor_mgr, "top_left_arrow", 1)))
 		wlr_xwayland_set_cursor(xwayland,
 				xcursor->images[0]->buffer, xcursor->images[0]->width * 4,
 				xcursor->images[0]->width, xcursor->images[0]->height,
