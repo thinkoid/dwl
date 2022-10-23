@@ -2499,21 +2499,15 @@ virtualkeyboard(struct wl_listener *listener, void *data)
 void
 volume(const Arg *arg)
 {
-        Client *sel;
-
-        const char *argv[] = { "volume", 0, 0 };
-        static const char *arr[] = { "DOWN", "MUTE", "UP" };
+        char *argv[] = { "volume", 0, 0 };
+        static char *arr[] = { "DOWN", "MUTE", "UP" };
 
         const size_t i = arg->i + 1;
         assert(i < sizeof arr / sizeof *arr);
 
-        if (0 == (sel = selclient()))
-                return;
-
         argv[1] = arr[i];
         spawn(&(Arg){ .v = argv });
 }
-
 
 Monitor *
 xytomon(double x, double y)
