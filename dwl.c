@@ -214,6 +214,7 @@ static void arrangelayer(Monitor *m, struct wl_list *list,
 		struct wlr_box *usable_area, int exclusive);
 static void arrangelayers(Monitor *m);
 static void axisnotify(struct wl_listener *listener, void *data);
+static void backlight(const Arg *arg);
 static void buttonpress(struct wl_listener *listener, void *data);
 static void chvt(const Arg *arg);
 static void checkidleinhibitor(struct wlr_surface *exclude);
@@ -644,6 +645,18 @@ axisnotify(struct wl_listener *listener, void *data)
 	wlr_seat_pointer_notify_axis(seat,
 			event->time_msec, event->orientation, event->delta,
 			event->delta_discrete, event->source);
+}
+
+void
+backlight(const Arg *arg)
+{
+        char *argv[] = { "light", 0, "5", 0 };
+        static char *arr[] = { "-U", "-A" };
+
+        assert(0 == arg->i || 1 == arg->i);
+        argv[1] = arr[arg->i];
+
+        spawn(&(Arg){ .v = argv });
 }
 
 void

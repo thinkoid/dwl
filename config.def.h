@@ -132,6 +132,9 @@ static const Key keys[] = {
 	{ 0, XKB_KEY_XF86AudioLowerVolume, volume, { .i = -1 } },
 	{ 0, XKB_KEY_XF86AudioMute,        volume, { .i =  0 } },
 
+	{ 0, XKB_KEY_XF86MonBrightnessDown, backlight, { .i = 0 } },
+	{ 0, XKB_KEY_XF86MonBrightnessUp,   backlight, { .i = 1 } },
+
 	TAGKEYS(          XKB_KEY_1, XKB_KEY_exclam,                     0),
 	TAGKEYS(          XKB_KEY_2, XKB_KEY_at,                         1),
 	TAGKEYS(          XKB_KEY_3, XKB_KEY_numbersign,                 2),
