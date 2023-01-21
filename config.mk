@@ -8,4 +8,4 @@ MANDIR = $(PREFIX)/share/man
 
 # XWayland support
 XWAYLAND = -DXWAYLAND
-XLIBS = xcb
+XLIBS = xcb xcb-icccm
