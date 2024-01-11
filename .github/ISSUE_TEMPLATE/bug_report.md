@@ -7,16 +7,7 @@ assignees: ''
 
 ---
 
-## Info
-dwl version:
-wlroots version:
-## Description
-<!--
-Only report bugs that can be reproduced on the main line
-Report patch issues to their respective authors
-If the patch author doesn't respond within a reasonable time, email me:
+### ⚠️ Migrated to Codeberg
 
-Leonardo Hernández Hernández <leohdz172@protonmail.com>
+This project has [migrated to Codeberg](https://codeberg.org/dwl/dwl).
 
-but note that I'm NOT making any promises
--->

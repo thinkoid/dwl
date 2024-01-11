@@ -1,82 +1,66 @@
-# -*- mode: makefile; -*-
+.POSIX:
+.SUFFIXES:
 
 include config.mk
 
 # flags for compiling
-CPPFLAGS = -I.									\
-    -DWLR_USE_UNSTABLE							\
-    -D_POSIX_C_SOURCE=200809L					\
-    -DVERSION=\"$(VERSION)\"					\
-    $(XWAYLAND)
+DWLCPPFLAGS = -I. -DWLR_USE_UNSTABLE -D_POSIX_C_SOURCE=200809L -DVERSION=\"$(VERSION)\" $(XWAYLAND)
+DWLDEVCFLAGS = -g -pedantic -Wall -Wextra -Wdeclaration-after-statement -Wno-unused-parameter -Wno-sign-compare -Wshadow -Wunused-macros\
+	-Werror=strict-prototypes -Werror=implicit -Werror=return-type -Werror=incompatible-pointer-types
 
-CFLAGS = -pedantic -Wall -Wextra				\
-    -Wdeclaration-after-statement				\
-    -Wno-unused-parameter						\
-    -Wno-sign-compare							\
-    -Wshadow									\
-    -Wunused-macros								\
-    -Werror=strict-prototypes					\
-    -Werror=implicit							\
-    -Werror=return-type							\
-    -Werror=incompatible-pointer-types
+# CFLAGS / LDFLAGS
+PKGS      = wlroots wayland-server xkbcommon libinput $(XLIBS)
+DWLCFLAGS = `$(PKG_CONFIG) --cflags $(PKGS)` $(DWLCPPFLAGS) $(DWLDEVCFLAGS) $(CFLAGS)
+LDLIBS    = `$(PKG_CONFIG) --libs $(PKGS)` $(LIBS)
 
-EXT = wlroots wayland-server xkbcommon libinput $(XLIBS)
-
-EXT_CFLAGS = $(shell $(PKG_CONFIG) --cflags $(EXT))
-EXT_LIBS   = $(shell $(PKG_CONFIG) --libs $(EXT))
-
-LDFLAGS =
-LIBS = $(EXT_LIBS)
-
-SRCS := $(wildcard *.c)
-OBJS := $(patsubst %.c,%.o,$(SRCS))
-
-TARGET = dwl
-
-PROTO_SRCS = client.h xdg-shell-protocol.h wlr-layer-shell-unstable-v1-protocol.h
-
-DEPENDDIR = ./.deps
-DEPENDFLAGS = -M
-
-all: $(TARGET)
-
-DEPS = $(patsubst %.o,$(DEPENDDIR)/%.d,$(OBJS))
--include $(DEPS)
-
-$(DEPENDDIR)/%.d: %.c $(DEPENDDIR) config.h $(PROTO_SRCS)
-	$(CC) $(CPPFLAGS) $(CFLAGS) $(EXT_CFLAGS) $(DEPENDFLAGS) $< >$@
-
-$(DEPENDDIR):
-	@[ ! -d $(DEPENDDIR) ] && mkdir -p $(DEPENDDIR)
-
-$(TARGET): $(OBJS)
-	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS)
-
-config.h: config.def.h
-	cp $< $@
-
-%: %.c
-
-%.o: %.c config.h $(PROTO_SRCS)
-	$(CC) -c $(CPPFLAGS) $(CFLAGS) $(EXT_CFLAGS) -o $@ $<
+all: dwl
+dwl: dwl.o util.o
+	$(CC) dwl.o util.o $(LDLIBS) $(LDFLAGS) $(DWLCFLAGS) -o $@
+dwl.o: dwl.c config.mk config.h client.h cursor-shape-v1-protocol.h xdg-shell-protocol.h wlr-layer-shell-unstable-v1-protocol.h
+util.o: util.c util.h
 
 # wayland-scanner is a tool which generates C headers and rigging for Wayland
 # protocols, which are specified in XML. wlroots requires you to rig these up
 # to your build system yourself and provide them in the include path.
-WAYLAND_SCANNER   = $(shell $(PKG_CONFIG) --variable=wayland_scanner wayland-scanner)
-WAYLAND_PROTOCOLS = $(shell $(PKG_CONFIG) --variable=pkgdatadir wayland-protocols)
+WAYLAND_SCANNER   = `$(PKG_CONFIG) --variable=wayland_scanner wayland-scanner`
+WAYLAND_PROTOCOLS = `$(PKG_CONFIG) --variable=pkgdatadir wayland-protocols`
 
 xdg-shell-protocol.h:
 	$(WAYLAND_SCANNER) server-header \
 		$(WAYLAND_PROTOCOLS)/stable/xdg-shell/xdg-shell.xml $@
-
 wlr-layer-shell-unstable-v1-protocol.h:
 	$(WAYLAND_SCANNER) server-header \
 		protocols/wlr-layer-shell-unstable-v1.xml $@
+cursor-shape-v1-protocol.h:
+	$(WAYLAND_SCANNER) server-header \
+		$(WAYLAND_PROTOCOLS)/staging/cursor-shape/cursor-shape-v1.xml $@
 
+config.h:
+	cp config.def.h $@
 clean:
-	rm -f $(TARGET) $(OBJS) *-protocol.h
+	rm -f dwl *.o *-protocol.h
 
-realclean: clean
-	rm -f config.h
-	rm -rf $(DEPENDDIR)
+dist: clean
+	mkdir -p dwl-$(VERSION)
+	cp -R LICENSE* Makefile README.md client.h config.def.h\
+		config.mk protocols dwl.1 dwl.c util.c util.h dwl.desktop\
+		dwl-$(VERSION)
+	tar -caf dwl-$(VERSION).tar.gz dwl-$(VERSION)
+	rm -rf dwl-$(VERSION)
+
+install: dwl
+	mkdir -p $(DESTDIR)$(PREFIX)/bin
+	cp -f dwl $(DESTDIR)$(PREFIX)/bin
+	chmod 755 $(DESTDIR)$(PREFIX)/bin/dwl
+	mkdir -p $(DESTDIR)$(MANDIR)/man1
+	cp -f dwl.1 $(DESTDIR)$(MANDIR)/man1
+	chmod 644 $(DESTDIR)$(MANDIR)/man1/dwl.1
+	mkdir -p $(DESTDIR)$(DATADIR)/wayland-sessions
+	cp -f dwl.desktop $(DESTDIR)$(DATADIR)/wayland-sessions/dwl.desktop
+	chmod 644 $(DESTDIR)$(DATADIR)/wayland-sessions/dwl.desktop
+uninstall:
+	rm -f $(DESTDIR)$(PREFIX)/bin/dwl $(DESTDIR)$(MANDIR)/man1/dwl.1 $(DESTDIR)$(DATADIR)/wayland-sessions/dwl.desktop
+
+.SUFFIXES: .c .o
+.c.o:
+	$(CC) $(CPPFLAGS) $(DWLCFLAGS) -c $<
